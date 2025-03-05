@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { EmailFetcher } from "@/components/email-fetcher"
+import { UsernameFetcher } from "@/components/username-fetcher"
 import { EmailFetcherStatic } from "@/components/email-fetcher-static"
 import { ThemeToggle } from "./theme-toggle"
 
@@ -46,18 +47,33 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <ThemeToggle />
-      <div className="w-full max-w-md mx-auto">
+      <div className="w-full max-w-6xl mx-auto">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-pink-500"></div>
           </div>
-        ) : isStatic ? (
-          <EmailFetcherStatic />
         ) : (
-          <EmailFetcher />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {isStatic ? (
+              <>
+                <div className="w-full">
+                  <EmailFetcherStatic />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-full">
+                  <UsernameFetcher />
+                </div>
+                <div className="w-full">
+                  <EmailFetcher />
+                </div>
+              </>
+            )}
+          </div>
         )}
         <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-4">
-          This tool helps identify the region of TikTok accounts based on their email address.
+          This tool helps identify the region of TikTok accounts based on their username or email address.
           {isStatic && " (Running in static mode)"}
         </p>
       </div>
