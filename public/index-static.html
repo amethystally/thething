@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TikTok Account Email Region Fetcher</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <div class="card-header">
+        <h1>TikTok Account Email Region Fetcher</h1>
+        <p>Enter a TikTok account email to discover its region</p>
+      </div>
+      <div class="card-content">
+        <form id="email-form">
+          <div class="form-group">
+            <input 
+              type="email" 
+              id="email-input" 
+              placeholder="tiktok@example.com" 
+              required
+            >
+          </div>
+          <button type="submit" id="submit-button">
+            Fetch Region
+            <span class="shine-element"></span>
+          </button>
+          <div id="loading" class="hidden">
+            <div class="spinner"></div>
+            <span>Processing...</span>
+          </div>
+        </form>
+        <div id="error-message" class="error-message hidden"></div>
+      </div>
+      <div id="result-container" class="card-footer hidden">
+        <h3>Region:</h3>
+        <div class="result-box">
+          <pre id="result-content"></pre>
+        </div>
+      </div>
+    </div>
+    <p class="footer-text">This tool helps identify the region of TikTok accounts based on their email address.</p>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+
