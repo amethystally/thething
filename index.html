@@ -29,19 +29,13 @@
       padding: 1rem;
     }
 
-    .grid-container {
-      display: grid;
-      grid-template-columns: 1fr;
+    .cards-container {
+      display: flex;
+      flex-wrap: wrap;
       gap: 1.5rem;
       width: 100%;
       max-width: 1200px;
-      margin-bottom: 1rem;
-    }
-
-    @media (min-width: 768px) {
-      .grid-container {
-        grid-template-columns: 1fr 1fr;
-      }
+      justify-content: center;
     }
 
     .card {
@@ -49,6 +43,7 @@
       border-radius: 1rem;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
       width: 100%;
+      max-width: 28rem;
       overflow: hidden;
       border: none;
     }
@@ -195,7 +190,7 @@
       display: none;
     }
 
-    #username-loading, #email-loading {
+    .loading {
       display: flex;
       align-items: center;
       justify-content: center;
@@ -228,12 +223,19 @@
       margin-top: 1rem;
       max-width: 28rem;
     }
+
+    @media (max-width: 768px) {
+      .cards-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="grid-container">
-      <!-- Username Fetcher -->
+    <div class="cards-container">
+      <!-- Username Card -->
       <div class="card">
         <div class="card-header">
           <h1>TikTok Username Region Fetcher</h1>
@@ -253,7 +255,7 @@
               Fetch Region
               <span class="shine-element"></span>
             </button>
-            <div id="username-loading" class="hidden">
+            <div id="username-loading" class="loading hidden">
               <div class="spinner"></div>
               <span>Processing...</span>
             </div>
@@ -268,7 +270,7 @@
         </div>
       </div>
 
-      <!-- Email Fetcher -->
+      <!-- Email Card -->
       <div class="card">
         <div class="card-header">
           <h1>TikTok Account Email Region Fetcher</h1>
@@ -284,39 +286,40 @@
                 required
               >
             </div>
-            <button type="submit" id="email-submit-button">
+            <button type="submit" id="submit-button">
               Fetch Region
               <span class="shine-element"></span>
             </button>
-            <div id="email-loading" class="hidden">
+            <div id="loading" class="loading hidden">
               <div class="spinner"></div>
               <span>Processing...</span>
             </div>
           </form>
-          <div id="email-error-message" class="error-message hidden"></div>
+          <div id="error-message" class="error-message hidden"></div>
         </div>
-        <div id="email-result-container" class="card-footer hidden">
+        <div id="result-container" class="card-footer hidden">
           <h3>Region:</h3>
           <div class="result-box">
-            <pre id="email-result-content"></pre>
+            <pre id="result-content"></pre>
           </div>
         </div>
       </div>
     </div>
-    <p class="footer-text">This tool helps identify the region of TikTok accounts based on their username or email address.</p>
+    <p class="footer-text">This tool helps identify the region of TikTok accounts based on their @username or email address.
+    (Please note that if the result shows "Account not found", the username or email may not be linked to an account)</p>
   </div>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Email form
+      // Email form handling
       const emailForm = document.getElementById("email-form");
       const emailInput = document.getElementById("email-input");
-      const emailSubmitButton = document.getElementById("email-submit-button");
-      const emailLoading = document.getElementById("email-loading");
-      const emailErrorMessage = document.getElementById("email-error-message");
-      const emailResultContainer = document.getElementById("email-result-container");
-      const emailResultContent = document.getElementById("email-result-content");
+      const submitButton = document.getElementById("submit-button");
+      const loading = document.getElementById("loading");
+      const errorMessage = document.getElementById("error-message");
+      const resultContainer = document.getElementById("result-container");
+      const resultContent = document.getElementById("result-content");
 
-      // Username form
+      // Username form handling
       const usernameForm = document.getElementById("username-form");
       const usernameInput = document.getElementById("username-input");
       const usernameSubmitButton = document.getElementById("username-submit-button");
@@ -325,145 +328,104 @@
       const usernameResultContainer = document.getElementById("username-result-container");
       const usernameResultContent = document.getElementById("username-result-content");
 
-      // Country code to name mapping
+      // Country names mapping
       const countryNames = {
-        US: "United States",
-        GB: "United Kingdom",
-        CA: "Canada",
-        AU: "Australia",
-        DE: "Germany",
-        FR: "France",
-        IT: "Italy",
-        ES: "Spain",
-        JP: "Japan",
-        CN: "China",
-        RU: "Russia",
-        BR: "Brazil",
-        IN: "India",
-        MX: "Mexico",
-        KR: "South Korea",
-        CH: "Switzerland",
-        BE: "Belgium",
+        "US": "United States",
+        "GB": "United Kingdom",
+        "CA": "Canada",
+        "AU": "Australia",
+        "DE": "Germany",
+        "FR": "France",
+        "IT": "Italy",
+        "ES": "Spain",
+        "JP": "Japan",
+        "CN": "China",
+        "RU": "Russia",
+        "BR": "Brazil",
+        "IN": "India",
+        "MX": "Mexico",
+        "KR": "South Korea",
+        "CH": "Switzerland",
+        "BE": "Belgium",
         // Add more as needed
       };
 
-      // Function to make decoy requests to obfuscate the real API call
-      function makeDecoyRequests() {
-        // List of decoy endpoints that look legitimate
-        const decoyEndpoints = [
-          '/api/analytics/track',
-          '/api/user/preferences',
-          '/api/metrics/event',
-          '/api/session/heartbeat',
-          '/api/config/fetch',
-          '/api/data/lookup',
-          '/api/stats/record',
-          '/api/auth/verify',
-          '/api/region/detect',
-          '/api/system/status'
-        ];
-        
-        // Make 3-7 decoy requests with random delays
-        const numRequests = 3 + Math.floor(Math.random() * 5);
-        
-        for (let i = 0; i < numRequests; i++) {
-          // Pick a random endpoint
-          const endpoint = decoyEndpoints[Math.floor(Math.random() * decoyEndpoints.length)];
-          
-          // Add random parameters
-          const randomParams = new URLSearchParams({
-            t: Date.now().toString(),
-            sid: Math.random().toString(36).substring(2, 15),
-            v: (Math.floor(Math.random() * 100) + 1).toString(),
-            r: Math.random().toString(36).substring(2, 10)
-          }).toString();
-          
-          // Make the decoy request with a random delay
-          setTimeout(() => {
-            // Use fetch with catch to silently handle any errors
-            fetch(`${endpoint}?${randomParams}`, { 
-              method: 'GET',
-              headers: {
-                'Accept': 'application/json',
-                'X-Request-ID': Math.random().toString(36).substring(2, 15)
-              },
-              // Set mode to no-cors to prevent CORS errors for these fake endpoints
-              mode: 'no-cors',
-            }).catch(() => {
-              // Silently ignore errors for decoy requests
-            });
-          }, Math.random() * 1000); // Random delay up to 1 second
-        }
-      }
-
-      // Email form submission handler
+      // Email form submission
       emailForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const email = emailInput.value.trim();
 
         if (!email || !email.includes("@")) {
-          showEmailError("Please enter a valid email address");
+          showError(errorMessage, "Please enter a valid email address");
           return;
         }
 
         // Show loading state
-        emailSubmitButton.style.display = "none";
-        emailLoading.classList.remove("hidden");
-        emailErrorMessage.classList.add("hidden");
-        emailResultContainer.classList.add("hidden");
+        submitButton.style.display = "none";
+        loading.classList.remove("hidden");
+        errorMessage.classList.add("hidden");
+        resultContainer.classList.add("hidden");
 
         try {
-          // Make decoy requests to obfuscate the real API call
-          makeDecoyRequests();
-
-          // Add a cache-busting parameter and random parameters to obfuscate the request
+          // Add a cache-busting parameter
           const timestamp = new Date().getTime();
-          const randomId = Math.random().toString(36).substring(2, 15);
-          const randomParam = Math.random().toString(36).substring(2, 10);
-
-          // Call the worker endpoint
-          const response = await fetch(`/api/process?email=${encodeURIComponent(email)}&_=${timestamp}&r=${randomId}&s=${randomParam}`);
+          // Call the Cloudflare Worker endpoint directly
+          const response = await fetch(`/api/process?email=${encodeURIComponent(email)}&_=${timestamp}`);
 
           if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
+            const contentType = response.headers.get("content-type") || "";
+            
+            if (contentType.includes("application/json")) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `Error: ${response.status} ${response.statusText}`);
+            } else {
+              throw new Error(`Error: ${response.status} ${response.statusText}`);
+            }
           }
 
           // Get the text from the response
           const data = await response.text();
           
+          // Simple check to avoid displaying HTML
+          if (data.trim().startsWith("<!DOCTYPE html>") || data.trim().startsWith("<html")) {
+            throw new Error("Received HTML instead of expected data. Please try again later.");
+          }
+          
           // Format the result to be more user-friendly
           let formattedResult = data.trim();
 
-          // Check if the result is "SG" and replace with "Account doesn't exist"
-          if (formattedResult.toUpperCase() === "SG") {
-            formattedResult = "Account doesn't exist";
-          } else if (formattedResult.length === 2 && /^[A-Z]{2}$/.test(formattedResult)) {
-            // If it's a country code, add some context
+          // Special handling for "SG" response - make this check more explicit
+          if (formattedResult === "SG") {
+            console.log("Static HTML converting SG to Account not found");
+            formattedResult = "Account not found";
+          }
+          // If it's a country code, add some context
+          else if (formattedResult.length === 2 && /^[A-Z]{2}$/.test(formattedResult)) {
             const countryName = countryNames[formattedResult] || "Unknown Country";
             formattedResult = `${formattedResult} (${countryName})`;
           }
 
           // Display the result
-          emailResultContent.textContent = formattedResult;
-          emailResultContainer.classList.remove("hidden");
+          resultContent.textContent = formattedResult;
+          resultContainer.classList.remove("hidden");
         } catch (error) {
-          showEmailError(error.message || "An error occurred while processing your request");
+          showError(errorMessage, error.message || "An error occurred while processing your request");
         } finally {
           // Hide loading state
-          emailSubmitButton.style.display = "block";
-          emailLoading.classList.add("hidden");
+          submitButton.style.display = "block";
+          loading.classList.add("hidden");
         }
       });
 
-      // Username form submission handler
+      // Username form submission
       usernameForm.addEventListener("submit", async (e) => {
         e.preventDefault();
 
         const username = usernameInput.value.trim();
 
         if (!username) {
-          showUsernameError("Please enter a valid username");
+          showError(usernameErrorMessage, "Please enter a valid username");
           return;
         }
 
@@ -474,32 +436,40 @@
         usernameResultContainer.classList.add("hidden");
 
         try {
-          // Make decoy requests to obfuscate the real API call
-          makeDecoyRequests();
-
-          // Add a cache-busting parameter and random parameters to obfuscate the request
+          // Add a cache-busting parameter
           const timestamp = new Date().getTime();
-          const randomId = Math.random().toString(36).substring(2, 15);
-          const randomParam = Math.random().toString(36).substring(2, 10);
-
-          // Call the worker endpoint
-          const response = await fetch(`/api/process?email=${encodeURIComponent(username)}&_=${timestamp}&r=${randomId}&s=${randomParam}`);
+          // Send the username directly - the API will handle it
+          const response = await fetch(`/api/process?email=${encodeURIComponent(username)}&_=${timestamp}`);
 
           if (!response.ok) {
-            throw new Error(`Error: ${response.status} ${response.statusText}`);
+            const contentType = response.headers.get("content-type") || "";
+            
+            if (contentType.includes("application/json")) {
+              const errorData = await response.json();
+              throw new Error(errorData.error || `Error: ${response.status} ${response.statusText}`);
+            } else {
+              throw new Error(`Error: ${response.status} ${response.statusText}`);
+            }
           }
 
           // Get the text from the response
           const data = await response.text();
           
+          // Simple check to avoid displaying HTML
+          if (data.trim().startsWith("<!DOCTYPE html>") || data.trim().startsWith("<html")) {
+            throw new Error("Received HTML instead of expected data. Please try again later.");
+          }
+          
           // Format the result to be more user-friendly
           let formattedResult = data.trim();
 
-          // Check if the result is "SG" and replace with "Account doesn't exist"
-          if (formattedResult.toUpperCase() === "SG") {
-            formattedResult = "Account doesn't exist";
-          } else if (formattedResult.length === 2 && /^[A-Z]{2}$/.test(formattedResult)) {
-            // If it's a country code, add some context
+          // Special handling for "SG" response - make this check more explicit
+          if (formattedResult === "SG") {
+            console.log("Static HTML converting SG to Account not found");
+            formattedResult = "Account not found";
+          }
+          // If it's a country code, add some context
+          else if (formattedResult.length === 2 && /^[A-Z]{2}$/.test(formattedResult)) {
             const countryName = countryNames[formattedResult] || "Unknown Country";
             formattedResult = `${formattedResult} (${countryName})`;
           }
@@ -508,7 +478,7 @@
           usernameResultContent.textContent = formattedResult;
           usernameResultContainer.classList.remove("hidden");
         } catch (error) {
-          showUsernameError(error.message || "An error occurred while processing your request");
+          showError(usernameErrorMessage, error.message || "An error occurred while processing your request");
         } finally {
           // Hide loading state
           usernameSubmitButton.style.display = "block";
@@ -516,14 +486,9 @@
         }
       });
 
-      function showEmailError(message) {
-        emailErrorMessage.textContent = message;
-        emailErrorMessage.classList.remove("hidden");
-      }
-
-      function showUsernameError(message) {
-        usernameErrorMessage.textContent = message;
-        usernameErrorMessage.classList.remove("hidden");
+      function showError(element, message) {
+        element.textContent = message;
+        element.classList.remove("hidden");
       }
     });
   </script>
